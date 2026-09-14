@@ -1,0 +1,5 @@
+{
+  "name": "breeze",
+  "description": "Breeze Virtual Airways - custom skin, laid out like frontierva.org. Extends 'seven' so unmodified pages inherit the branding.",
+  "extends": "seven"
+}
