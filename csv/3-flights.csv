@@ -1,0 +1,9 @@
+airline,flight_number,route_code,callsign,route_leg,dpt_airport,arr_airport,alt_airport,days,dpt_time,arr_time,level,distance,flight_time,flight_type,load_factor,load_factor_variance,pilot_pay,route,notes,start_date,end_date,active,subfleets,fares,fields,event_id,user_id
+MXY,101,,,,KCHS,KHPN,,,08:15,10:05,36000,,110,J,85,10,,,,,,1,A223,,,,
+MXY,102,,,,KHPN,KCHS,,,11:00,12:55,36000,,115,J,85,10,,,,,,1,A223,,,,
+MXY,220,,,,KTPA,KPVD,,,07:30,10:20,38000,,170,J,85,10,,,,,,1,A223,,,,
+MXY,221,,,,KPVD,KTPA,,,11:15,14:00,38000,,165,J,85,10,,,,,,1,A223,,,,
+MXY,340,,,,KPVU,KSFO,,,09:00,10:55,36000,,115,J,85,10,,,,,,1,A223,,,,
+MXY,341,,,,KSFO,KPVU,,,12:00,14:00,36000,,120,J,85,10,,,,,,1,A223,,,,
+MXY,455,,,,KORF,KTPA,,,06:45,08:50,37000,,125,J,85,10,,,,,,1,A223,,,,
+MXY,610,,,,KRDU,KLAS,,,10:30,15:30,39000,,300,J,85,10,,,,,,1,A223,,,,

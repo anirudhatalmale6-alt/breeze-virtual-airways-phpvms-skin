@@ -1,0 +1,13 @@
+icao,iata,name,location,region,country,timezone,hub,lat,lon,elevation,ground_handling_cost,fuel_100ll_cost,fuel_jeta_cost,fuel_mogas_cost,notes
+KCHS,CHS,Charleston Air Force Base-International Airport,Charleston,US-SC,US,America/New_York,1,32.89860153,-80.04049683,46,,,,,
+KTPA,TPA,Tampa International Airport,Tampa,US-FL,US,America/New_York,1,27.9755001068,-82.533203125,26,,,,,
+KPVU,PVU,Provo Municipal Airport,Provo,US-UT,US,America/Denver,1,40.2192001343,-111.7229995728,4497,,,,,
+KORF,ORF,Norfolk International Airport,Norfolk,US-VA,US,America/New_York,0,36.8945999146,-76.2012023926,26,,,,,
+KPVD,PVD,Rhode Island TF Green International Airport,Providence,US-RI,US,America/New_York,0,41.7326011658,-71.4204025269,55,,,,,
+KHPN,HPN,Westchester County Airport,White Plains,US-NY,US,America/New_York,0,41.0670013428,-73.7076034546,439,,,,,
+KRDU,RDU,Raleigh Durham International Airport,Raleigh/Durham,US-NC,US,America/New_York,0,35.8776016235,-78.7874984741,435,,,,,
+KLAS,LAS,Harry Reid International Airport,Las Vegas,US-NV,US,America/Los_Angeles,0,36.08010101,-115.1520004,2181,,,,,
+KSFO,SFO,San Francisco International Airport,San Francisco,US-CA,US,America/Los_Angeles,0,37.6189994812,-122.375,13,,,,,
+KMSY,MSY,Louis Armstrong New Orleans International Airport,New Orleans,US-LA,US,America/Chicago,0,29.9934005737,-90.2580032349,4,,,,,
+KJAX,JAX,Jacksonville International Airport,Jacksonville,US-FL,US,America/New_York,0,30.4941005707,-81.6878967285,30,,,,,
+KSFB,SFB,Orlando Sanford International Airport,Orlando,US-FL,US,America/New_York,0,28.7775993347,-81.2375030518,55,,,,,

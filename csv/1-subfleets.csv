@@ -1,0 +1,2 @@
+airline,hub_id,type,simbrief_type,name,fuel_type,cost_block_hour,cost_delay_minute,ground_handling_multiplier,fares,ranks
+MXY,KCHS,A223,BCS3,Airbus A220-300,1,3400,60,100,,1;2;3;4
