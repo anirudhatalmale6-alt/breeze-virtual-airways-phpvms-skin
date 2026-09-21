@@ -6,6 +6,7 @@
     use App\Models\Bid;
     use App\Models\Enums\PirepSource;
     use App\Models\Enums\PirepState;
+    use App\Models\Enums\PirepStatus;
     use App\Models\Enums\UserState;
     use App\Models\Pirep;
     use App\Models\User;
@@ -52,20 +53,61 @@
 
         return intdiv($minutes, 60).'h '.str_pad($minutes % 60, 2, '0', STR_PAD_LEFT).'m';
     };
+
+    /*
+     * Live status pill. The wording comes from phpVMS's own ACARS status list
+     * (PirepStatus), so whatever smartCARS reports - boarding, pushback, taxi,
+     * enroute, final approach - is what shows here. The map below only decides
+     * the colour and the icon for each phase.
+     */
+    $statusStyle = [
+        PirepStatus::INITIATED     => ['sched',  'bi-clock'],
+        PirepStatus::SCHEDULED     => ['sched',  'bi-clock'],
+        PirepStatus::BOARDING      => ['board',  'bi-people-fill'],
+        PirepStatus::RDY_START     => ['ground', 'bi-power'],
+        PirepStatus::PUSHBACK_TOW  => ['ground', 'bi-arrow-left-right'],
+        PirepStatus::DEPARTED      => ['ground', 'bi-box-arrow-right'],
+        PirepStatus::RDY_DEICE     => ['ground', 'bi-snow'],
+        PirepStatus::STRT_DEICE    => ['ground', 'bi-snow2'],
+        PirepStatus::GRND_RTRN     => ['alert',  'bi-arrow-counterclockwise'],
+        PirepStatus::TAXI          => ['ground', 'bi-signpost-split'],
+        PirepStatus::TAKEOFF       => ['air',    'bi-airplane-engines'],
+        PirepStatus::INIT_CLIM     => ['air',    'bi-arrow-up-right'],
+        PirepStatus::AIRBORNE      => ['air',    'bi-airplane-fill'],
+        PirepStatus::ENROUTE       => ['air',    'bi-airplane-fill'],
+        PirepStatus::DIVERTED      => ['alert',  'bi-exclamation-triangle-fill'],
+        PirepStatus::APPROACH      => ['arrive', 'bi-arrow-down-right'],
+        PirepStatus::APPROACH_ICAO => ['arrive', 'bi-arrow-down-right'],
+        PirepStatus::ON_FINAL      => ['arrive', 'bi-arrow-down-right'],
+        PirepStatus::LANDING       => ['arrive', 'bi-airplane'],
+        PirepStatus::LANDED        => ['arrive', 'bi-airplane'],
+        PirepStatus::ON_BLOCK      => ['done',   'bi-check-circle-fill'],
+        PirepStatus::ARRIVED       => ['done',   'bi-check-circle-fill'],
+        PirepStatus::CANCELLED     => ['alert',  'bi-x-circle-fill'],
+        PirepStatus::EMERG_DESCENT => ['alert',  'bi-exclamation-octagon-fill'],
+        PirepStatus::PAUSED        => ['paused', 'bi-pause-fill'],
+    ];
+
+    $statusPill = function ($code) use ($statusStyle) {
+        [$tone, $icon] = $statusStyle[$code] ?? ['sched', 'bi-dot'];
+
+        return [
+            'tone'  => $tone,
+            'icon'  => $icon,
+            'label' => PirepStatus::label($code),
+        ];
+    };
 @endphp
 
 @section('fullwidth')
 
     {{-- ============================= HERO =============================== --}}
-    {{-- Drop a ramp photo in as --bz-hero-image and it takes over the gradient:
-         style="--bz-hero-image: url('{{ public_asset('/assets/breeze/hero.jpg') }}')" --}}
+    {{-- Swap the artwork by replacing public/assets/breeze/hero.jpg. It carries the
+         wordmark and the tagline itself, so nothing is overlaid on top of it. --}}
     <section class="bz-hero">
-        <div class="bz-hero__inner">
-            {{-- knockout version of the logo: the navy wordmark is recoloured white
-                 so it reads against the dark hero. logo.png stays for the white header. --}}
-            <img class="logo" src="{{ public_asset('/assets/breeze/logo-light.png') }}"
-                alt="{{ config('app.name') }}">
-            <p class="tagline">Fly the Breeze &mdash; on VATSIM &amp; IVAO</p>
+        <img class="bz-hero__art" src="{{ public_asset('/assets/breeze/hero.jpg') }}"
+            alt="{{ config('app.name') }} - Fly Further Together">
+        <div class="bz-hero__cta">
             <div class="d-flex flex-wrap gap-2 justify-content-center">
                 <a href="{{ url('/register') }}" class="btn btn-breeze btn-lg px-4">
                     <i class="bi bi-person-vcard me-1"></i> Join the Crew
@@ -168,17 +210,26 @@
                                 <th>Arr ICAO</th>
                                 <th>Aircraft</th>
                                 <th>Status</th>
+                                <th class="text-end d-none d-md-table-cell">Last report</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($airborne as $p)
+                                @php($st = $statusPill($p->status))
                                 <tr>
                                     <td>{{ optional($p->user)->name_private }}</td>
                                     <td><span class="badge bz-badge">{{ $p->ident }}</span></td>
                                     <td>{{ $p->dpt_airport_id }}</td>
                                     <td>{{ $p->arr_airport_id }}</td>
                                     <td class="text-body-secondary">{{ optional($p->aircraft)->ident }}</td>
-                                    <td><span class="badge text-bg-success">Airborne</span></td>
+                                    <td>
+                                        <span class="bz-st bz-st--{{ $st['tone'] }}">
+                                            <i class="bi {{ $st['icon'] }}"></i>{{ $st['label'] }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end text-body-secondary d-none d-md-table-cell">
+                                        {{ $p->updated_at ? $p->updated_at->diffForHumans(null, true).' ago' : '—' }}
+                                    </td>
                                 </tr>
                             @endforeach
                             @foreach ($dispatched as $bid)
@@ -188,12 +239,23 @@
                                     <td>{{ optional($bid->flight)->dpt_airport_id }}</td>
                                     <td>{{ optional($bid->flight)->arr_airport_id }}</td>
                                     <td class="text-body-secondary">{{ optional($bid->aircraft)->ident }}</td>
-                                    <td><span class="badge text-bg-secondary">Booked</span></td>
+                                    <td>
+                                        <span class="bz-st bz-st--sched">
+                                            <i class="bi bi-bookmark-check-fill"></i>Booked
+                                        </span>
+                                    </td>
+                                    <td class="text-end text-body-secondary d-none d-md-table-cell">
+                                        @if (filled(optional($bid->flight)->dpt_time))
+                                            STD {{ $bid->flight->dpt_time }}
+                                        @else
+                                            &mdash;
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforeach
                             @if ($airborne->isEmpty() && $dispatched->isEmpty())
                                 <tr>
-                                    <td colspan="6" class="bz-empty">There are no active bookings.</td>
+                                    <td colspan="7" class="bz-empty">There are no active bookings.</td>
                                 </tr>
                             @endif
                         </tbody>

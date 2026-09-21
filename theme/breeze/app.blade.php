@@ -163,24 +163,89 @@
             color: var(--bz-blue);
         }
 
+        /* Header in dark mode: the white brand bar would be blinding at night,
+           so it goes navy and the knockout logo takes over. */
+        [data-bs-theme=dark] .bz-header {
+            background: #0a1220;
+            box-shadow: 0 1px 10px rgba(0, 0, 0, .5);
+        }
+
+        [data-bs-theme=dark] .bz-header .nav-link,
+        [data-bs-theme=dark] .bz-zulu {
+            color: #e7eef7 !important;
+        }
+
+        [data-bs-theme=dark] .bz-header .navbar-toggler {
+            border-color: rgba(255, 255, 255, .35);
+        }
+
+        [data-bs-theme=dark] .bz-header .navbar-toggler-icon {
+            filter: invert(1) grayscale(1) brightness(2);
+        }
+
+        [data-bs-theme=dark] .bz-header .dropdown-menu {
+            background: #121a26;
+        }
+
+        [data-bs-theme=dark] .bz-header .dropdown-item {
+            color: #e7eef7;
+        }
+
+        [data-bs-theme=dark] .bz-header .dropdown-item:hover {
+            background: #1b2736;
+            color: var(--bz-blue-2);
+        }
+
+        /* Two logo files, one for each theme - only one is ever shown */
+        .bz-logo-dark {
+            display: none;
+        }
+
+        [data-bs-theme=dark] .bz-logo-light {
+            display: none;
+        }
+
+        [data-bs-theme=dark] .bz-logo-dark {
+            display: inline-block;
+        }
+
         /* ---- Hero -------------------------------------------------------- */
+        /* The hero artwork already contains the wordmark and the "Fly Further
+           Together" tagline, so it is placed as a real image in the flow rather
+           than as a background - that way nothing crops the lettering off at any
+           screen width. The buttons sit in a navy strip directly underneath. */
         .bz-hero {
-            position: relative;
-            min-height: 460px;
+            background: var(--bz-navy);
+        }
+
+        .bz-hero__art {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 760px;
+            object-fit: cover;
+            object-position: center 34%;
+        }
+
+        .bz-hero__cta {
+            background: var(--bz-navy);
+            text-align: center;
+            padding: 1.35rem 1rem 1.5rem;
+        }
+
+        /* Fallback for when no artwork has been set yet */
+        .bz-hero--plain {
+            min-height: 420px;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             color: #fff;
-            background:
-                linear-gradient(180deg, rgba(2, 25, 58, .72) 0%, rgba(2, 25, 58, .55) 45%, rgba(2, 25, 58, .88) 100%),
-                var(--bz-hero-image, linear-gradient(160deg, #0780e9 0%, #052c5f 55%, #02193a 100%));
-            background-size: cover;
-            background-position: center;
+            background: linear-gradient(160deg, #0780e9 0%, #052c5f 55%, #02193a 100%);
         }
 
         .bz-hero__inner {
-            padding: 3.5rem 1rem;
+            padding: 2rem 1rem 2.25rem;
             max-width: 54rem;
         }
 
@@ -322,6 +387,51 @@
             color: #fff;
             font-weight: 600;
             letter-spacing: .04em;
+        }
+
+        /* ---- Live flight status pills ------------------------------------
+           One pill per ACARS phase reported by smartCARS. Every colour below
+           is a dark fill with white text, so they read the same in light mode
+           and dark mode and stay legible at small sizes. */
+        .bz-st {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .3rem .6rem;
+            border-radius: 999px;
+            font-size: .74rem;
+            font-weight: 600;
+            letter-spacing: .03em;
+            color: #fff;
+            white-space: nowrap;
+            line-height: 1;
+        }
+
+        .bz-st i {
+            font-size: .8rem;
+        }
+
+        .bz-st--sched   { background: #64748b; }   /* scheduled / initiated  */
+        .bz-st--board   { background: #0780e9; }   /* boarding               */
+        .bz-st--ground  { background: #b45309; }   /* pushback, taxi, de-ice */
+        .bz-st--air     { background: #15803d; }   /* takeoff, climb, cruise */
+        .bz-st--arrive  { background: #0e7490; }   /* approach, final, land  */
+        .bz-st--done    { background: #02193a; }   /* on block / arrived     */
+        .bz-st--alert   { background: #b91c1c; }   /* diverted, emergency    */
+        .bz-st--paused  { background: #475569; }   /* paused                 */
+
+        /* A quiet pulse so a flight that is actually moving reads as live */
+        .bz-st--air i {
+            animation: bz-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes bz-pulse {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: .45; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bz-st--air i { animation: none; }
         }
 
         .bz-empty {
