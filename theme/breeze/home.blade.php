@@ -463,6 +463,17 @@
                                             <span class="bz-st bz-st--{{ $otp['tone'] }}">
                                                 <i class="bi {{ $otp['icon'] }}"></i>{{ $otp['label'] }}
                                             </span>
+                                        @elseif (blank(optional($p->flight)->dpt_time))
+                                            {{--
+                                                Replacing a schedule deletes the old route rows, so a report
+                                                flown against a retired route has nothing left to be judged
+                                                against. Say that, rather than showing a bare dash that reads
+                                                as a fault.
+                                            --}}
+                                            <span class="text-body-secondary small"
+                                                title="This route is no longer in the schedule, so there is no scheduled departure time to compare against. The flight report itself is intact.">
+                                                No schedule
+                                            </span>
                                         @else
                                             <span class="text-body-secondary">&mdash;</span>
                                         @endif
