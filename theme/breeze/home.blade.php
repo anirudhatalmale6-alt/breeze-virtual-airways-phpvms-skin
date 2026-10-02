@@ -5,6 +5,7 @@
 @php
     use App\Models\Bid;
     use App\Models\Enums\PirepSource;
+    use App\Models\Flight;
     use App\Models\Enums\PirepState;
     use App\Models\Enums\PirepStatus;
     use App\Models\Enums\UserState;
@@ -132,8 +133,91 @@
     $SCHEDULE_TIMES_ARE_LOCAL = false;
     $ON_TIME_MINUTES = 15; // the usual airline definition
 
-    $departurePunctuality = function ($pirep) use ($SCHEDULE_TIMES_ARE_LOCAL, $ON_TIME_MINUTES) {
+    /*
+     * Find the scheduled departure time for a report whose own flight row has
+     * gone.
+     *
+     * Replacing the schedule deletes the old route rows, so a report keeps a
+     * flight_id pointing at something that no longer exists - even when the SAME
+     * flight number is still very much in the schedule under a new row. Looking
+     * the report up by id alone therefore says "no schedule" about a route the
+     * client can see on his own site, which is exactly what he queried.
+     *
+     * So fall back to the route's identity rather than its row: same airline,
+     * same flight number, same city pair. A number can be flown several times a
+     * day (MXY720 has four legs KPVD-KCHS), so narrow by the weekday the flight
+     * actually operated, then take the candidate whose scheduled time is nearest
+     * to the real push. Results are memoised - the board renders ten rows.
+     */
+    $scheduleLookupCache = [];
+    $findScheduledTime = function ($pirep) use (&$scheduleLookupCache) {
+        $key = $pirep->airline_id.'|'.$pirep->flight_number.'|'.$pirep->dpt_airport_id.'|'.$pirep->arr_airport_id;
+        if (array_key_exists($key, $scheduleLookupCache)) {
+            return $scheduleLookupCache[$key];
+        }
+
+        $candidates = Flight::where('airline_id', $pirep->airline_id)
+            ->where('flight_number', $pirep->flight_number)
+            ->where('dpt_airport_id', $pirep->dpt_airport_id)
+            ->where('arr_airport_id', $pirep->arr_airport_id)
+            ->get()
+            ->filter(fn ($f) => filled($f->dpt_time));
+
+        if ($candidates->isEmpty()) {
+            return $scheduleLookupCache[$key] = null;
+        }
+
+        /*
+         * The day the flight actually operated, as a phpVMS day bit (Mon = 1<<0).
+         * Both of these columns go through CarbonCast, which hands back a Carbon
+         * object even when the stored value is NULL, so ask the raw row - the
+         * same trap that once made a flight still on stand read as "Early".
+         */
+        $flownAt = null;
+        if (filled($pirep->getRawOriginal('block_off_time'))) {
+            $flownAt = $pirep->block_off_time;
+        } elseif (filled($pirep->getRawOriginal('submitted_at'))) {
+            $flownAt = $pirep->submitted_at;
+        }
+
+        if ($flownAt) {
+            $dayBit = 1 << ((int) $flownAt->copy()->setTimezone('UTC')->isoWeekday() - 1);
+            $onThatDay = $candidates->filter(fn ($f) => (int) $f->days === 0 || ((int) $f->days & $dayBit));
+            if ($onThatDay->isNotEmpty()) {
+                $candidates = $onThatDay;
+            }
+        }
+
+        if ($candidates->count() === 1 || !$flownAt) {
+            return $scheduleLookupCache[$key] = $candidates->first()->dpt_time;
+        }
+
+        // Several legs left on that day - take the one closest to the real push
+        $target = $flownAt->copy()->setTimezone('UTC');
+        $best = null;
+        $bestGap = null;
+        foreach ($candidates as $f) {
+            if (!preg_match('/^(\d{1,2}):(\d{2})/', trim($f->dpt_time), $m)) {
+                continue;
+            }
+            $gap = abs($target->copy()->setTime((int) $m[1], (int) $m[2], 0)->diffInMinutes($target, false));
+            if ($bestGap === null || $gap < $bestGap) {
+                $bestGap = $gap;
+                $best = $f->dpt_time;
+            }
+        }
+
+        return $scheduleLookupCache[$key] = $best ?? $candidates->first()->dpt_time;
+    };
+
+    $departurePunctuality = function ($pirep) use ($SCHEDULE_TIMES_ARE_LOCAL, $ON_TIME_MINUTES, $findScheduledTime) {
         $std = optional($pirep->flight)->dpt_time;
+
+        // The report's own route row is gone, but the flight number may still
+        // be scheduled - see $findScheduledTime above.
+        if (blank($std)) {
+            $std = $findScheduledTime($pirep);
+        }
 
         /*
          * CAREFUL: phpVMS casts block_off_time through CarbonCast, which hands
