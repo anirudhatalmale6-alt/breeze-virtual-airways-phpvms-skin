@@ -420,6 +420,11 @@
         .bz-st--alert   { background: #b91c1c; }   /* diverted, emergency    */
         .bz-st--paused  { background: #475569; }   /* paused                 */
 
+        /* On-time performance on a filed report */
+        .bz-st--ontime  { background: #15803d; }   /* pushed within 15 min   */
+        .bz-st--late    { background: #b45309; }   /* pushed late            */
+        .bz-st--early   { background: #0e7490; }   /* pushed early           */
+
         /* A quiet pulse so a flight that is actually moving reads as live */
         .bz-st--air i {
             animation: bz-pulse 2s ease-in-out infinite;

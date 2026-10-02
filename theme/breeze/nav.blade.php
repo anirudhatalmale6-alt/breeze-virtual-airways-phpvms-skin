@@ -6,7 +6,10 @@
     <nav class="navbar navbar-expand-lg navbar-light py-2">
         <div class="container">
             <a class="navbar-brand py-0" href="{{ url('/') }}">
-                <img src="{{ public_asset('/assets/breeze/logo.png') }}" alt="{{ config('app.name') }}">
+                <img class="bz-logo-light" src="{{ public_asset('/assets/breeze/logo.png') }}"
+                    alt="{{ config('app.name') }}">
+                <img class="bz-logo-dark" src="{{ public_asset('/assets/breeze/logo-light.png') }}"
+                    alt="{{ config('app.name') }}">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
