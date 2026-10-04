@@ -210,7 +210,15 @@
         return $scheduleLookupCache[$key] = $best ?? $candidates->first()->dpt_time;
     };
 
-    $departurePunctuality = function ($pirep) use ($SCHEDULE_TIMES_ARE_LOCAL, $ON_TIME_MINUTES, $findScheduledTime) {
+    /*
+     * Beyond this gap from the scheduled slot, stop calling it early or late and
+     * just show the scheduled time. 4 hours: a real delay almost never exceeds
+     * that, so anything larger means the pilot is flying the route at a time of
+     * his own choosing rather than running late.
+     */
+    $MAX_SCHEDULE_GAP_MINUTES = 240;
+
+    $departurePunctuality = function ($pirep) use ($SCHEDULE_TIMES_ARE_LOCAL, $ON_TIME_MINUTES, $findScheduledTime, $MAX_SCHEDULE_GAP_MINUTES) {
         $std = optional($pirep->flight)->dpt_time;
 
         // The report's own route row is gone, but the flight number may still
@@ -272,6 +280,27 @@
                 ? intdiv($mins, 60).'h '.($mins % 60).'m'
                 : $mins.'m';
         };
+
+        /*
+         * SANITY WINDOW.
+         *
+         * A real departures board can assume the aeroplane is trying to leave at
+         * its slot. A virtual airline cannot: pilots fly a scheduled route
+         * whenever they happen to be free. Ray boarded MX1338, slot 23:10Z, at
+         * 10:18Z, and the board told him he was "Delayed 11h 8m" - arithmetically
+         * true against the previous day's slot, and completely useless.
+         *
+         * Past this gap the flight is not running late, it is simply a different
+         * rotation of the same route, so claiming early or late is meaningless.
+         * Show the scheduled time instead, which is true no matter when he flies.
+         */
+        if (abs($late) > $MAX_SCHEDULE_GAP_MINUTES) {
+            return [
+                'tone'  => 'sched',
+                'icon'  => 'bi-clock',
+                'label' => 'STD '.str_pad($m[1], 2, '0', STR_PAD_LEFT).':'.$m[2].($SCHEDULE_TIMES_ARE_LOCAL ? '' : 'Z'),
+            ];
+        }
 
         if (abs($late) <= $ON_TIME_MINUTES) {
             return ['tone' => 'ontime', 'icon' => 'bi-check-circle-fill', 'label' => 'On time'];
