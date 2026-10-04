@@ -292,13 +292,20 @@
          *
          * Past this gap the flight is not running late, it is simply a different
          * rotation of the same route, so claiming early or late is meaningless.
-         * Show the scheduled time instead, which is true no matter when he flies.
+         *
+         * It reads "On time" rather than a bare scheduled time, at Ray's request:
+         * the pilot did nothing wrong, so the board should not withhold the good
+         * result. The scheduled time it was measured against is kept in the
+         * tooltip rather than thrown away, so the badge stays defensible.
          */
         if (abs($late) > $MAX_SCHEDULE_GAP_MINUTES) {
+            $std_label = str_pad($m[1], 2, '0', STR_PAD_LEFT).':'.$m[2].($SCHEDULE_TIMES_ARE_LOCAL ? '' : 'Z');
+
             return [
-                'tone'  => 'sched',
-                'icon'  => 'bi-clock',
-                'label' => 'STD '.str_pad($m[1], 2, '0', STR_PAD_LEFT).':'.$m[2].($SCHEDULE_TIMES_ARE_LOCAL ? '' : 'Z'),
+                'tone'  => 'ontime',
+                'icon'  => 'bi-check-circle-fill',
+                'label' => 'On time',
+                'note'  => 'Operated outside the scheduled window (STD '.$std_label.'), so no delay was recorded against it.',
             ];
         }
 
@@ -486,7 +493,8 @@
                                     <td>
                                         @php($otpLive = $departurePunctuality($p))
                                         @if ($otpLive)
-                                            <span class="bz-st bz-st--{{ $otpLive['tone'] }}">
+                                            <span class="bz-st bz-st--{{ $otpLive['tone'] }}"
+                                                @if (!empty($otpLive['note'])) title="{{ $otpLive['note'] }}" @endif>
                                                 <i class="bi {{ $otpLive['icon'] }}"></i>{{ $otpLive['label'] }}
                                             </span>
                                         @else
@@ -573,7 +581,8 @@
                                     <td>
                                         @php($otp = $departurePunctuality($p))
                                         @if ($otp)
-                                            <span class="bz-st bz-st--{{ $otp['tone'] }}">
+                                            <span class="bz-st bz-st--{{ $otp['tone'] }}"
+                                                @if (!empty($otp['note'])) title="{{ $otp['note'] }}" @endif>
                                                 <i class="bi {{ $otp['icon'] }}"></i>{{ $otp['label'] }}
                                             </span>
                                         @elseif (blank(optional($p->flight)->dpt_time))
