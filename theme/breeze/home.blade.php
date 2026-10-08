@@ -218,7 +218,32 @@
      */
     $MAX_SCHEDULE_GAP_MINUTES = 240;
 
-    $departurePunctuality = function ($pirep) use ($SCHEDULE_TIMES_ARE_LOCAL, $ON_TIME_MINUTES, $findScheduledTime, $MAX_SCHEDULE_GAP_MINUTES) {
+    /*
+     * CAN WE HONESTLY MEASURE PUNCTUALITY AT ALL?
+     *
+     * No - not with the data smartCARS gives us.
+     *
+     * The schedule is in Zulu and the pilots set the SIMULATOR clock to the slot,
+     * then fly. But smartCARS never sends the simulator's clock. Its position
+     * reports carry latitude, longitude, heading, altitude, ground speed and
+     * phase, and nothing else; `acars.sim_time` exists in the database and is
+     * always NULL. The module stamps the departure with `Carbon::now()`, i.e. the
+     * SERVER's wall clock.
+     *
+     * So on 8 Oct Ray flew MX811 with his sim set to 11:18Z against an 11:05Z
+     * slot - on time to the minute as far as he and the aircraft were concerned -
+     * while the server recorded 07:07Z and the board called him 3h 57m early.
+     * The two clocks are simply unrelated, and no amount of arithmetic here can
+     * reconcile them.
+     *
+     * Rather than keep publishing a confident number derived from the wrong
+     * clock, the column reports On time and keeps the scheduled slot in the
+     * tooltip. Flip this to true only if smartCARS ever starts reporting sim
+     * time, or if the airline decides to fly to real-world clock times.
+     */
+    $MEASURE_PUNCTUALITY_AGAINST_WALL_CLOCK = false;
+
+    $departurePunctuality = function ($pirep) use ($SCHEDULE_TIMES_ARE_LOCAL, $ON_TIME_MINUTES, $findScheduledTime, $MAX_SCHEDULE_GAP_MINUTES, $MEASURE_PUNCTUALITY_AGAINST_WALL_CLOCK) {
         $std = optional($pirep->flight)->dpt_time;
 
         // The report's own route row is gone, but the flight number may still
@@ -238,6 +263,26 @@
          */
         $hasPushed = filled($pirep->getRawOriginal('block_off_time'));
         $actual = $hasPushed ? $pirep->block_off_time : now();
+
+        /*
+         * The sim clock is not reported, so the only honest statement we can make
+         * is the scheduled time itself. Say On time and carry the slot in the
+         * tooltip - see the note on $MEASURE_PUNCTUALITY_AGAINST_WALL_CLOCK.
+         */
+        if (!$MEASURE_PUNCTUALITY_AGAINST_WALL_CLOCK) {
+            if (blank($std) || !preg_match('/^(\d{1,2}):(\d{2})/', trim($std), $sm)) {
+                return null;
+            }
+
+            $std_label = str_pad($sm[1], 2, '0', STR_PAD_LEFT).':'.$sm[2].($SCHEDULE_TIMES_ARE_LOCAL ? '' : 'Z');
+
+            return [
+                'tone'  => 'ontime',
+                'icon'  => 'bi-check-circle-fill',
+                'label' => 'On time',
+                'note'  => 'Scheduled '.$std_label.'. Punctuality is not scored: smartCARS reports the real-world clock, not your simulator clock, so the two cannot be compared.',
+            ];
+        }
 
         // Nothing to compare against
         if (blank($std) || !preg_match('/^(\d{1,2}):(\d{2})/', trim($std), $m)) {
