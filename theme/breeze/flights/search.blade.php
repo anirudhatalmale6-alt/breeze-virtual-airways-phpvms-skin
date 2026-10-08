@@ -72,15 +72,23 @@
           <input type="text" name="route_code" id="route_code" class="form-control" value="{{ request()->get('route_code') }}" />
         </div>
 
+        {{--
+          Placeholder shortened from the stock "Type To Begin Search", which is
+          too wide to read in this sidebar column. "Code or name" is accurate:
+          /api/airports/search matches on icao, iata AND name, so KCHS, CHS and
+          Charleston all find the airport. The label above already says which
+          end of the route it is, so the placeholder only has to teach the
+          format.
+        --}}
         <div class="mb-3">
           <label for="dep_icao" class="form-label">@lang('airports.departure')</label>
-          <select name="dep_icao" placeholder="Type To Begin Search" id="dep_icao" class="form-select airport_search">
+          <select name="dep_icao" placeholder="Code or name" id="dep_icao" class="form-select airport_search">
           </select>
         </div>
 
         <div class="mb-3">
           <label for="arr_icao" class="form-label">@lang('airports.arrival')</label>
-          <select name="arr_icao" placeholder="Type To Begin Search" id="arr_icao" class="form-select airport_search">
+          <select name="arr_icao" placeholder="Code or name" id="arr_icao" class="form-select airport_search">
           </select>
         </div>
 
