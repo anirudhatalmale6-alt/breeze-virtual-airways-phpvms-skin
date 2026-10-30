@@ -18,7 +18,11 @@
     </script>
 
     {{-- Start of required lines block. DON'T REMOVE THESE LINES! --}}
-    <meta name="base-url" content="{!! url('') !!}">
+    {{-- The site's own JS (phpvms.bids.addBid etc.) builds every API call from
+         this. url('') is forced to APP_URL (the www host), so a pilot on the bare
+         domain made cross-origin calls the API has no CORS headers for, and
+         bidding silently failed. Use the host the page was actually served on. --}}
+    <meta name="base-url" content="{{ request()->getSchemeAndHttpHost() }}">
     <meta name="api-key" content="{!! Auth::check() ? Auth::user()->api_key : '' !!}">
     <meta name="csrf-token" content="{!! csrf_token() !!}">
     {{-- End the required lines block --}}
