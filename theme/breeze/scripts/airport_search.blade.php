@@ -41,7 +41,14 @@
           return true;
         },
         load: function(query, callback) {
-          var url = new URL('{{ Config::get("app.url") }}/api/airports/search');
+          // Same-origin on purpose. The stock code used the configured app.url
+          // (https://www.breezevirtualairways.org), but the site also answers on
+          // the bare domain without redirecting. A pilot on
+          // breezevirtualairways.org then fetched from www. - a cross-origin
+          // request the API sends no CORS header for - so the browser blocked
+          // it, the catch below swallowed the error, and the dropdown was simply
+          // empty. Building the URL from the page's own origin works on both.
+          var url = new URL('/api/airports/search', window.location.origin);
           var params = {
             search: query,
             hubs: element.classList.contains('hubs_only') ? 1 : 0,
