@@ -19,21 +19,27 @@
     @if (setting('bids.block_aircraft', false))
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                const bidModal = new bootstrap.Modal(document.getElementById('bidModal'));
+                // The My Bids page includes this script but NOT the booking box.
+                // new bootstrap.Modal(null) throws there (stock phpVMS too), which
+                // killed the whole handler so Remove Bid did nothing. Only build
+                // the box where it exists; the bid buttons are wired up regardless.
+                const modalEl = document.getElementById('bidModal');
+                const bidModal = modalEl ? new bootstrap.Modal(modalEl) : null;
                 let aircrafts = [{
                     id: 0,
                     text: 'Loading Aircrafts...'
                 }];
                 let sel = document.getElementById('aircraft_select');
-                const acSelect = new TomSelect(sel, {
+                const acSelect = sel ? new TomSelect(sel, {
                     options: [],
                     valueField: 'id',
                     labelField: 'text',
                     searchField: 'text',
                     placeholder: 'Select aircraft',
                     maxOptions: 500
-                });
+                }) : null;
                 const setAcPlaceholder = (text) => {
+                    if (!acSelect) return;
                     acSelect.settings.placeholder = text;
                     if (acSelect.control_input) acSelect.control_input.setAttribute('placeholder', text);
                 };
@@ -46,10 +52,23 @@
                         const class_name = btn.getAttribute(
                             'x-saved-class'); // classname to use is set on the element
                         const flight_id = btn.getAttribute('x-id');
-                        sel.setAttribute('x-saved-class', class_name);
-                        sel.setAttribute('x-id', flight_id);
+                        if (sel) {
+                            sel.setAttribute('x-saved-class', class_name);
+                            sel.setAttribute('x-id', flight_id);
+                        }
 
-                        if (!btn.classList.contains(class_name)) {
+                        if (!btn.classList.contains(class_name) && !bidModal) {
+                            // Adding a bid on a page without the booking box:
+                            // book without an aircraft rather than doing nothing.
+                            phpvms.bids.addBid(flight_id).then(() => {
+                                btn.classList.add(class_name);
+                                location.reload();
+                            }).catch((error) => {
+                                if (error.response && error.response.data)
+                                    alert(`Error adding bid: ${error.response.data.details}`);
+                                else alert(`Error adding bid: ${error.message}`);
+                            });
+                        } else if (!btn.classList.contains(class_name)) {
 
                             bidModal.show();
                             acSelect.clear(true);
@@ -99,49 +118,52 @@
                     });
                 });
 
-                document.getElementById('btn-close').addEventListener('click', () => {
-                    bidModal.hide();
-                });
-
-                // Bootstrap closes a data-bs-dismiss button's modal in the CAPTURE
-                // phase, before this handler runs, so it cannot be cancelled here.
-                // Take the auto-close off and close it only once a booking proceeds.
-                const bookBtn = document.getElementById('with_aircraft');
-                bookBtn.removeAttribute('data-bs-dismiss');
-                bookBtn.addEventListener('click', () => {
-                    const ac_id = acSelect.getValue();
-                    if (!ac_id) {
-                        alert('Please select an aircraft first, or choose Don\'t Book Aircraft.');
-                        acSelect.focus();
-                        return;
-                    }
-                    bidModal.hide();
-                    const flight_id = sel.getAttribute('x-id');
-                    const class_name = sel.getAttribute('x-saved-class');
-                    phpvms.bids.addBid(flight_id, ac_id).then(() => {
-                        document.querySelector(`button.save_flight[x-id="${flight_id}"]`).classList.add(
-                            class_name);
-                        location.reload();
-                    }).catch((error) => {
-                        if (error.response && error.response.data)
-                            alert(`Error adding bid: ${error.response.data.details}`);
-                        else alert(`Error adding bid: ${error.message}`);
+                // The booking box's own buttons only exist where the box does.
+                if (modalEl) {
+                    document.getElementById('btn-close').addEventListener('click', () => {
+                        bidModal.hide();
                     });
-                });
 
-                document.getElementById('without_aircraft').addEventListener('click', () => {
-                    const flight_id = sel.getAttribute('x-id');
-                    const class_name = sel.getAttribute('x-saved-class');
-                    phpvms.bids.addBid(flight_id).then(() => {
-                        document.querySelector(`button.save_flight[x-id="${flight_id}"]`).classList.add(
-                            class_name);
-                        location.reload();
-                    }).catch((error) => {
-                        if (error.response && error.response.data)
-                            alert(`Error adding bid: ${error.response.data.details}`);
-                        else alert(`Error adding bid: ${error.message}`);
+                    // Bootstrap closes a data-bs-dismiss button's modal in the CAPTURE
+                    // phase, before this handler runs, so it cannot be cancelled here.
+                    // Take the auto-close off and close it only once a booking proceeds.
+                    const bookBtn = document.getElementById('with_aircraft');
+                    bookBtn.removeAttribute('data-bs-dismiss');
+                    bookBtn.addEventListener('click', () => {
+                        const ac_id = acSelect.getValue();
+                        if (!ac_id) {
+                            alert('Please select an aircraft first, or choose Don\'t Book Aircraft.');
+                            acSelect.focus();
+                            return;
+                        }
+                        bidModal.hide();
+                        const flight_id = sel.getAttribute('x-id');
+                        const class_name = sel.getAttribute('x-saved-class');
+                        phpvms.bids.addBid(flight_id, ac_id).then(() => {
+                            document.querySelector(`button.save_flight[x-id="${flight_id}"]`).classList.add(
+                                class_name);
+                            location.reload();
+                        }).catch((error) => {
+                            if (error.response && error.response.data)
+                                alert(`Error adding bid: ${error.response.data.details}`);
+                            else alert(`Error adding bid: ${error.message}`);
+                        });
                     });
-                });
+
+                    document.getElementById('without_aircraft').addEventListener('click', () => {
+                        const flight_id = sel.getAttribute('x-id');
+                        const class_name = sel.getAttribute('x-saved-class');
+                        phpvms.bids.addBid(flight_id).then(() => {
+                            document.querySelector(`button.save_flight[x-id="${flight_id}"]`).classList.add(
+                                class_name);
+                            location.reload();
+                        }).catch((error) => {
+                            if (error.response && error.response.data)
+                                alert(`Error adding bid: ${error.response.data.details}`);
+                            else alert(`Error adding bid: ${error.message}`);
+                        });
+                    });
+                }
             });
         </script>
     @else
