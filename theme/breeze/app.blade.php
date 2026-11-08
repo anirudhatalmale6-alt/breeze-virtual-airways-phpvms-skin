@@ -454,6 +454,19 @@
             border-bottom: 3px solid var(--bz-blue);
         }
 
+        /* The live-map widget outputs a Bootstrap .row; outside a .container its
+           negative gutters stick 12px past the viewport and cause a horizontal
+           scrollbar on desktop. Cancel them here - the map stays edge to edge. */
+        .bz-map-wrap > .row {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        .bz-map-wrap > .row > [class*="col"] {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
         /* ---- Footer ------------------------------------------------------ */
         footer.bz-footer {
             background: var(--bz-navy);
