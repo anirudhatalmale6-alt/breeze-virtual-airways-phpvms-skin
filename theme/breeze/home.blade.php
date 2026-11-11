@@ -531,7 +531,10 @@
                                                 title="Routes and flight log for {{ $u->name_private }}"><strong>{{ $u->ident }}</strong> {{ $u->name_private }}</a>
                                         @endif
                                     </td>
-                                    <td><span class="badge bz-badge">{{ $p->ident }}</span></td>
+                                    <td>
+                                        <a class="text-decoration-none" href="{{ route('frontend.pireps.show', [$p->id]) }}"
+                                            title="Open the flight report for {{ $p->ident }}"><span class="badge bz-badge">{{ $p->ident }}</span></a>
+                                    </td>
                                     <td>{{ $p->dpt_airport_id }}</td>
                                     <td>{{ $p->arr_airport_id }}</td>
                                     <td class="text-body-secondary">{{ optional($p->aircraft)->ident }}</td>
@@ -624,7 +627,10 @@
                                                 title="Routes and flight log for {{ $u->name_private }}"><strong>{{ $u->ident }}</strong> {{ $u->name_private }}</a>
                                         @endif
                                     </td>
-                                    <td><span class="badge bz-badge">{{ $p->ident }}</span></td>
+                                    <td>
+                                        <a class="text-decoration-none" href="{{ route('frontend.pireps.show', [$p->id]) }}"
+                                            title="Open the flight report for {{ $p->ident }}"><span class="badge bz-badge">{{ $p->ident }}</span></a>
+                                    </td>
                                     <td>
                                         <i class="bi bi-geo-alt text-body-secondary"></i>
                                         <a class="text-decoration-none"
