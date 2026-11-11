@@ -525,7 +525,12 @@
                                     }
                                 @endphp
                                 <tr>
-                                    <td>{{ optional($p->user)->name_private }}</td>
+                                    <td>
+                                        @if ($u = optional($p)->user)
+                                            <a class="bz-pilot text-decoration-none text-nowrap" href="{{ route('frontend.users.show.public', [$u->id]) }}"
+                                                title="Routes and flight log for {{ $u->name_private }}"><strong>{{ $u->ident }}</strong> {{ $u->name_private }}</a>
+                                        @endif
+                                    </td>
                                     <td><span class="badge bz-badge">{{ $p->ident }}</span></td>
                                     <td>{{ $p->dpt_airport_id }}</td>
                                     <td>{{ $p->arr_airport_id }}</td>
@@ -553,7 +558,12 @@
                             @endforeach
                             @foreach ($dispatched as $bid)
                                 <tr>
-                                    <td>{{ optional($bid->user)->name_private }}</td>
+                                    <td>
+                                        @if ($u = optional($bid)->user)
+                                            <a class="bz-pilot text-decoration-none text-nowrap" href="{{ route('frontend.users.show.public', [$u->id]) }}"
+                                                title="Routes and flight log for {{ $u->name_private }}"><strong>{{ $u->ident }}</strong> {{ $u->name_private }}</a>
+                                        @endif
+                                    </td>
                                     <td><span class="badge bz-badge">{{ optional($bid->flight)->ident }}</span></td>
                                     <td>{{ optional($bid->flight)->dpt_airport_id }}</td>
                                     <td>{{ optional($bid->flight)->arr_airport_id }}</td>
@@ -609,7 +619,10 @@
                                 <tr>
                                     <td>
                                         <i class="bi bi-person-circle me-1 text-body-secondary"></i>
-                                        {{ optional($p->user)->name_private }}
+                                        @if ($u = optional($p)->user)
+                                            <a class="bz-pilot text-decoration-none text-nowrap" href="{{ route('frontend.users.show.public', [$u->id]) }}"
+                                                title="Routes and flight log for {{ $u->name_private }}"><strong>{{ $u->ident }}</strong> {{ $u->name_private }}</a>
+                                        @endif
                                     </td>
                                     <td><span class="badge bz-badge">{{ $p->ident }}</span></td>
                                     <td>
