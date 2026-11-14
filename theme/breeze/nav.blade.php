@@ -50,7 +50,7 @@
                                 </li>
                                 <li>
                                     <a class="dropdown-item" href="{{ route('frontend.downloads.index') }}">
-                                        <i class="bi bi-download me-1"></i> Downloads &amp; smartCARS
+                                        <i class="bi bi-download me-1"></i> Downloads
                                     </a>
                                 </li>
                             @endif
