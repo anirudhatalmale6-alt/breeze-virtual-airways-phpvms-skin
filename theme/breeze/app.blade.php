@@ -26,8 +26,10 @@
     <meta name="api-key" content="{!! Auth::check() ? Auth::user()->api_key : '' !!}">
     <meta name="csrf-token" content="{!! csrf_token() !!}">
     {{-- End the required lines block --}}
-
-    <link rel="shortcut icon" type="image/png" href="{{ public_asset('/assets/breeze/logo.png') }}" />
+    {{-- Square tab icons. The wide logo used before was squeezed into 16px and unreadable. --}}
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ public_asset('/assets/breeze/favicon-32.png') }}" />
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ public_asset('/assets/breeze/favicon-512.png') }}" />
+    <link rel="apple-touch-icon" href="{{ public_asset('/assets/breeze/favicon-180.png') }}" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Open+Sans:wght@400;600;700&display=swap"
         rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
