@@ -13,7 +13,7 @@
 <div class="table-responsive">
 <table class="table table-striped table-hover align-middle" id="users-table">
     <thead>
-        <th scope="col">@sortablelink('id', 'ID')</th>
+        <th scope="col">@sortablelink('pilot_id', 'ID')</th>
         <th scope="col">@sortablelink('name', __('common.name'))</th>
         <th scope="col" class="d-none d-md-table-cell">@sortablelink('airline_id', __('common.airline'))</th>
         <th scope="col">@sortablelink('curr_airport_id', __('user.location'))</th>
