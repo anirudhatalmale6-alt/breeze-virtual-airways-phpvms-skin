@@ -1,10 +1,21 @@
 {{-- Every picture is shown as the same 56px circle. Uploaded avatars (200px) used to
      appear at full size next to 80px default ones. --}}
-<table class="table table-responsive table-striped table-hover" id="users-table">
+{{-- Bootstrap 5 only scrolls a table sideways inside a .table-responsive WRAPPER; on the
+     table itself it did nothing, so on phones the whole page scrolled sideways. --}}
+<style>
+  /* Phones: smaller pictures and tighter cells so all the columns fit the screen */
+  @media (max-width: 575.98px) {
+    #users-table img { width: 36px !important; height: 36px !important; }
+    #users-table th, #users-table td { padding: .5rem .35rem; font-size: .9rem; }
+    .card-body:has(#users-table) { padding: .4rem !important; }
+  }
+</style>
+<div class="table-responsive">
+<table class="table table-striped table-hover align-middle" id="users-table">
     <thead>
         <th scope="col">@sortablelink('id', 'ID')</th>
         <th scope="col">@sortablelink('name', __('common.name'))</th>
-        <th scope="col">@sortablelink('airline_id', __('common.airline'))</th>
+        <th scope="col" class="d-none d-md-table-cell">@sortablelink('airline_id', __('common.airline'))</th>
         <th scope="col">@sortablelink('curr_airport_id', __('user.location'))</th>
         <th scope="col">@sortablelink('flights', trans_choice('common.flight', 2))</th>
         <th scope="col">@sortablelink('flight_time', trans_choice('common.hour', 2))</th>
@@ -28,7 +39,7 @@
                             title="{{ $country->alpha2($user->country)['name'] }}"></span>
                     @endif
                 </td>
-                <td>{{ $user->airline->icao }}</td>
+                <td class="d-none d-md-table-cell">{{ $user->airline->icao }}</td>
                 <td>
                     @if ($user->current_airport)
                         {{ $user->curr_airport_id }}
@@ -42,3 +53,4 @@
         @endforeach
     </tbody>
 </table>
+</div>
