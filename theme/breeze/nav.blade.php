@@ -70,7 +70,8 @@
                         </a>
                         <ul class="dropdown-menu">
                             {{-- phpVMS "pages" created in the admin appear here automatically --}}
-                            @forelse ($page_links as $page)
+                            {{-- The NOTAM page only feeds the notice box on the Flights page, not this menu --}}
+                            @forelse (collect($page_links)->reject(fn ($p) => ($p->slug ?? '') === 'notam') as $page)
                                 <li>
                                     <a class="dropdown-item" href="{{ $page->url }}"
                                         target="{{ $page->new_window ? '_blank' : '_self' }}">
