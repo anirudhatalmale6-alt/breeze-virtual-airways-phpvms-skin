@@ -3,8 +3,8 @@
 {{-- Bootstrap 5 only scrolls a table sideways inside a .table-responsive WRAPPER; on the
      table itself it did nothing, so on phones the whole page scrolled sideways. --}}
 <style>
-  /* Rank badge next to the pilot's name (the small roster copy, ~20 KB, not the full-size patch) */
-  #users-table img.rank-badge { height: 30px; width: auto; vertical-align: middle; margin-left: .4rem; }
+  /* Rank badge: its own column after the name so every badge lines up (under the name on phones) (the small roster copy, ~20 KB, not the full-size patch) */
+  #users-table img.rank-badge { height: 30px; width: auto; vertical-align: middle; }
   /* Phones: smaller pictures and tighter cells so all the columns fit the screen */
   @media (max-width: 575.98px) {
     #users-table img.rounded-circle { width: 36px !important; height: 36px !important; }
@@ -18,6 +18,7 @@
     <thead>
         <th scope="col">@sortablelink('pilot_id', 'ID')</th>
         <th scope="col">@sortablelink('name', __('common.name'))</th>
+        <th scope="col" class="d-none d-md-table-cell">Rank</th>
         <th scope="col" class="d-none d-md-table-cell">@sortablelink('airline_id', __('common.airline'))</th>
         <th scope="col">@sortablelink('curr_airport_id', __('user.location'))</th>
         <th scope="col">@sortablelink('flights', trans_choice('common.flight', 2))</th>
@@ -26,6 +27,18 @@
     <tbody>
         @foreach ($users as $user)
             <tr class="align-middle">
+                {{-- Rank badge. Uses the small copy in ranks/small/ when there is one,
+                     otherwise the rank's own image. Hover shows the rank name. --}}
+                @php
+                    $rankBadge = null;
+                    if ($user->rank && filled($user->rank->image_url)) {
+                        $rankBadge = $user->rank->image_url;
+                        $rankSmall = 'assets/img/ranks/small/'.basename((string) parse_url($rankBadge, PHP_URL_PATH));
+                        if (is_file(public_path($rankSmall))) {
+                            $rankBadge = public_asset($rankSmall);
+                        }
+                    }
+                @endphp
                 <td scope="row">
                     @if ($user->avatar == null)
                         <img class="rounded-circle" src="{{ $user->gravatar(112) }}&s=112" alt="" style="width: 56px; height: 56px; object-fit: cover;" />
@@ -37,24 +50,18 @@
                     <a href="{{ route('frontend.users.show.public', [$user->id]) }}">
                         {{ $user->ident }}&nbsp;{{ $user->name_private }}
                     </a>
-                    {{-- Rank badge. Uses the small copy in ranks/small/ when there is one,
-                         otherwise the rank's own image. Hover shows the rank name. --}}
-                    @php
-                        $rankBadge = null;
-                        if ($user->rank && filled($user->rank->image_url)) {
-                            $rankBadge = $user->rank->image_url;
-                            $rankSmall = 'assets/img/ranks/small/'.basename((string) parse_url($rankBadge, PHP_URL_PATH));
-                            if (is_file(public_path($rankSmall))) {
-                                $rankBadge = public_asset($rankSmall);
-                            }
-                        }
-                    @endphp
-                    @if ($rankBadge)
-                        <img class="rank-badge" src="{{ $rankBadge }}" alt="{{ $user->rank->name }}" title="{{ $user->rank->name }}">
-                    @endif
                     @if (filled($user->country))
                         <span class="fi fi-{{ $user->country }} ml-2"
                             title="{{ $country->alpha2($user->country)['name'] }}"></span>
+                    @endif
+                    {{-- Phones: no room for a Rank column, so the badge goes on its own line under the name --}}
+                    @if ($rankBadge)
+                        <div class="d-md-none mt-1"><img class="rank-badge" src="{{ $rankBadge }}" alt="{{ $user->rank->name }}" title="{{ $user->rank->name }}"></div>
+                    @endif
+                </td>
+                <td class="text-nowrap d-none d-md-table-cell">
+                    @if ($rankBadge)
+                        <img class="rank-badge" src="{{ $rankBadge }}" alt="{{ $user->rank->name }}" title="{{ $user->rank->name }}">
                     @endif
                 </td>
                 <td class="d-none d-md-table-cell">{{ $user->airline->icao }}</td>
