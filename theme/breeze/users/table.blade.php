@@ -3,9 +3,12 @@
 {{-- Bootstrap 5 only scrolls a table sideways inside a .table-responsive WRAPPER; on the
      table itself it did nothing, so on phones the whole page scrolled sideways. --}}
 <style>
+  /* Rank badge next to the pilot's name (the small roster copy, ~20 KB, not the full-size patch) */
+  #users-table img.rank-badge { height: 30px; width: auto; vertical-align: middle; margin-left: .4rem; }
   /* Phones: smaller pictures and tighter cells so all the columns fit the screen */
   @media (max-width: 575.98px) {
-    #users-table img { width: 36px !important; height: 36px !important; }
+    #users-table img.rounded-circle { width: 36px !important; height: 36px !important; }
+    #users-table img.rank-badge { height: 20px; }
     #users-table th, #users-table td { padding: .5rem .35rem; font-size: .9rem; }
     .card-body:has(#users-table) { padding: .4rem !important; }
   }
@@ -34,6 +37,21 @@
                     <a href="{{ route('frontend.users.show.public', [$user->id]) }}">
                         {{ $user->ident }}&nbsp;{{ $user->name_private }}
                     </a>
+                    {{-- Rank badge. Uses the small copy in ranks/small/ when there is one,
+                         otherwise the rank's own image. Hover shows the rank name. --}}
+                    @php
+                        $rankBadge = null;
+                        if ($user->rank && filled($user->rank->image_url)) {
+                            $rankBadge = $user->rank->image_url;
+                            $rankSmall = 'assets/img/ranks/small/'.basename((string) parse_url($rankBadge, PHP_URL_PATH));
+                            if (is_file(public_path($rankSmall))) {
+                                $rankBadge = public_asset($rankSmall);
+                            }
+                        }
+                    @endphp
+                    @if ($rankBadge)
+                        <img class="rank-badge" src="{{ $rankBadge }}" alt="{{ $user->rank->name }}" title="{{ $user->rank->name }}">
+                    @endif
                     @if (filled($user->country))
                         <span class="fi fi-{{ $user->country }} ml-2"
                             title="{{ $country->alpha2($user->country)['name'] }}"></span>
